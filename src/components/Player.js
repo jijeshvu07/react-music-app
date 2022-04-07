@@ -6,7 +6,6 @@ import {
   faAngleRight,
   faPause,
 } from "@fortawesome/free-solid-svg-icons";
-import { playAudio } from "../util";
 
 const Player = ({
   audioRef,
@@ -21,10 +20,9 @@ const Player = ({
 }) => {
   //useEfffect
 
-  useEffect(() => {
-    //Add active song
+  const activeLibraryHandler = (nextPrev) => {
     const newSongs = songs.map((song) => {
-      if (song.id === currentSong.id) {
+      if (song.id === nextPrev.id) {
         return {
           ...song,
           active: true,
@@ -37,7 +35,7 @@ const Player = ({
       }
     });
     setSongs(newSongs);
-  }, [currentSong]);
+  };
 
   //Event Handlers
   const playClickHandler = () => {
@@ -61,20 +59,25 @@ const Player = ({
     setSongInfo({ ...songInfo, currentTime: e.target.value });
   };
 
-  const skipTrackHandler = (direction) => {
+  const skipTrackHandler = async (direction) => {
     let currentIndex = songs.findIndex((s) => s.id === currentSong.id);
     if (direction === "skip-back") {
       if ((currentIndex - 1) % songs.length == -1) {
-        setCurrentSong(songs[songs.length - 1]);
-        playAudio(isPlaying, audioRef);
+        const index = (currentIndex - 1) % songs.length;
+        await setCurrentSong(songs[index]);
+        activeLibraryHandler(songs[index]);
         return;
       }
-      setCurrentSong(songs[(currentIndex - 1) % songs.length]);
+      const index = (currentIndex - 1) % songs.length;
+      await setCurrentSong(songs[index]);
+      activeLibraryHandler(songs[index]);
     }
     if (direction === "skip-forward") {
-      setCurrentSong(songs[(currentIndex + 1) % songs.length]);
+      const index = (currentIndex + 1) % songs.length;
+      await setCurrentSong(songs[index]);
+      activeLibraryHandler(songs[index]);
     }
-    playAudio(isPlaying, audioRef);
+    if (isPlaying) audioRef.current.play();
   };
 
   return (
